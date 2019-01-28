@@ -1,25 +1,27 @@
 ---
-- name: install and start apache
+- name: Install Apache playbook
   hosts: web
   become: yes
+  gather_facts: false
   vars:
-  	webserver: httpd
-
+    httpd_packages:
+      - httpd
+      - mod_wsgi
+    apache_test_message: This is a test message
 
   tasks:
-  -	name: "{{ webserver }} package is present"
-    yum:
-     name: "{{ webserver }}"
-     state: latest
-    notify:restart webserver
 
-  - name: latest index.html file is present
-    copy:
-      src: files/index.html
-      dest: /var/www/html/
-      
+  - name: install httpd packages
+    yum:
+      name: "{{ item }}"
+      state: present
+    loop: "{{ httpd_packages }}"
+    notify: restart apache service
+
   handlers:
-  - name: restart webserver
+
+  - name: restart apache service
     service:
-      name: {{ webserver }}
+      name: httpd
       state: restarted
+      enabled: yes
